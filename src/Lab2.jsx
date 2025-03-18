@@ -14,7 +14,7 @@ export const Lab2 = ({ direction }) => (
     }}>
         <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%'}}>
           <ParallaxContainer direction={direction}  animation={bgAnimVariants}>
-            <img src='/bgtest.png' style={{width:'100vw'}}></img>
+            <img src='/bg2.png' style={{width:'100vw'}}></img>
           </ParallaxContainer>
         </Box>
   

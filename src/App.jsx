@@ -20,7 +20,7 @@ const NavBar = () => {
       <Toolbar sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
         <Button color="inherit" component={Link} to="/" onClick={() => handleNavigation("/")}>Главная</Button>
         <Button color="inherit" component={Link} to="/lab2" onClick={() => handleNavigation("/lab2")}>Лабораторная 2</Button>
-        <Button color="inherit" component={Link} to="/lab3" onClick={() => handleNavigation("/lab3")}>Лабораторная 3</Button>
+        <Button color="inherit" onClick={() => window.location.href = "/lab3"}>Лабораторная 3</Button>
       </Toolbar>
     </AppBar>
   );
@@ -51,13 +51,13 @@ const Home = ({ direction }) => {
         </Box> */}
 
         <Box sx={{position:'absolute', width:'100%', height:'100%', left:'10%', top: '20%', zIndex: 2}}>
-          <ParallaxContainer direction={direction} animation={bgAnimVariants2}>
+          <ParallaxContainer direction={direction} animation={bgAnimVariants}>
             <img src='/moon.png'></img>
           </ParallaxContainer>
         </Box>
 
         <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%', zIndex: 0}}>
-          <ParallaxContainer direction={direction} animation={bgAnimVariants}>
+          <ParallaxContainer direction={direction} animation={bgAnimVariants2}>
             <motion.div initial={{"--mask-pos": "0px 100%"}} animate={{"--mask-pos": "1920px 100%"}} transition={{duration:30, ease:"linear", repeat: Infinity, repeatType: "loop"}}>
               <div className="bottom-panel">
                 <motion.div animate={{x: '-16px', transition:{duration:0.5, ease:"linear", repeat: Infinity, repeatType: "loop"}}}>
@@ -95,6 +95,16 @@ const AnimatedRoutes = () => {
     </AnimatePresence>
   );
 };
+
+// const GlobalRoutes = () => {
+//   const location = useLocation();
+
+//   return (
+//     <Routes location={location} key={location.pathname}>
+//       <Route></Route>
+//     </Routes>
+//   );
+// }
 
 const App = () => {
   const theme = createTheme({
