@@ -255,7 +255,7 @@ function initRuntime() {
   runtimeInitialized = true;
   if (!Module["noFSInit"] && !FS.initialized) FS.init();
   TTY.init();
-  wasmExports["wb"]();
+  wasmExports["yb"]();
   FS.ignorePermissions = false;
 }
 
@@ -413,9 +413,9 @@ async function createWasm() {
   // performing other necessary setup
   /** @param {WebAssembly.Module=} module*/ function receiveInstance(instance, module) {
     wasmExports = instance.exports;
-    wasmMemory = wasmExports["vb"];
+    wasmMemory = wasmExports["xb"];
     updateMemoryViews();
-    wasmTable = wasmExports["yb"];
+    wasmTable = wasmExports["Ab"];
     removeRunDependency("wasm-instantiate");
     return wasmExports;
   }
@@ -550,6 +550,65 @@ var UTF8Decoder = typeof TextDecoder != "undefined" ? new TextDecoder : undefine
      */ var UTF8ToString = (ptr, maxBytesToRead) => ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead) : "";
 
 var ___assert_fail = (condition, filename, line, func) => abort(`Assertion failed: ${UTF8ToString(condition)}, at: ` + [ filename ? UTF8ToString(filename) : "unknown filename", line, func ? UTF8ToString(func) : "unknown function" ]);
+
+class ExceptionInfo {
+  // excPtr - Thrown object pointer to wrap. Metadata pointer is calculated from it.
+  constructor(excPtr) {
+    this.excPtr = excPtr;
+    this.ptr = excPtr - 24;
+  }
+  set_type(type) {
+    HEAPU32[(((this.ptr) + (4)) >> 2)] = type;
+  }
+  get_type() {
+    return HEAPU32[(((this.ptr) + (4)) >> 2)];
+  }
+  set_destructor(destructor) {
+    HEAPU32[(((this.ptr) + (8)) >> 2)] = destructor;
+  }
+  get_destructor() {
+    return HEAPU32[(((this.ptr) + (8)) >> 2)];
+  }
+  set_caught(caught) {
+    caught = caught ? 1 : 0;
+    HEAP8[(this.ptr) + (12)] = caught;
+  }
+  get_caught() {
+    return HEAP8[(this.ptr) + (12)] != 0;
+  }
+  set_rethrown(rethrown) {
+    rethrown = rethrown ? 1 : 0;
+    HEAP8[(this.ptr) + (13)] = rethrown;
+  }
+  get_rethrown() {
+    return HEAP8[(this.ptr) + (13)] != 0;
+  }
+  // Initialize native structure fields. Should be called once after allocated.
+  init(type, destructor) {
+    this.set_adjusted_ptr(0);
+    this.set_type(type);
+    this.set_destructor(destructor);
+  }
+  set_adjusted_ptr(adjustedPtr) {
+    HEAPU32[(((this.ptr) + (16)) >> 2)] = adjustedPtr;
+  }
+  get_adjusted_ptr() {
+    return HEAPU32[(((this.ptr) + (16)) >> 2)];
+  }
+}
+
+var exceptionLast = 0;
+
+var uncaughtExceptionCount = 0;
+
+var ___cxa_throw = (ptr, type, destructor) => {
+  var info = new ExceptionInfo(ptr);
+  // Initialize ExceptionInfo content after it was allocated in __cxa_allocate_exception.
+  info.init(type, destructor);
+  exceptionLast = ptr;
+  uncaughtExceptionCount++;
+  throw exceptionLast;
+};
 
 var PATH = {
   isAbs: path => path.charAt(0) === "/",
@@ -3277,6 +3336,8 @@ function ___syscall_openat(dirfd, path, flags, varargs) {
     return -e.errno;
   }
 }
+
+var __abort_js = () => abort("");
 
 var __emscripten_fs_load_embedded_files = ptr => {
   do {
@@ -7433,28 +7494,28 @@ Module["createContext"] = Browser.createContext;
 
 // End JS library code
 var ASM_CONSTS = {
-  4057640: () => {
+  2345592: () => {
     if (document.fullscreenElement) return 1;
   },
-  4057686: () => document.getElementById("canvas").width,
-  4057738: () => parseInt(document.getElementById("canvas").style.width),
-  4057806: () => {
+  2345638: () => document.getElementById("canvas").width,
+  2345690: () => parseInt(document.getElementById("canvas").style.width),
+  2345758: () => {
     document.exitFullscreen();
   },
-  4057833: () => {
+  2345785: () => {
     setTimeout(function() {
       Module.requestFullscreen(false, false);
     }, 100);
   },
-  4057906: () => {
+  2345858: () => {
     if (document.fullscreenElement) return 1;
   },
-  4057952: () => document.getElementById("canvas").width,
-  4058004: () => screen.width,
-  4058029: () => {
+  2345904: () => document.getElementById("canvas").width,
+  2345956: () => screen.width,
+  2345981: () => {
     document.exitFullscreen();
   },
-  4058056: () => {
+  2346008: () => {
     setTimeout(function() {
       Module.requestFullscreen(false, true);
       setTimeout(function() {
@@ -7462,53 +7523,53 @@ var ASM_CONSTS = {
       }, 100);
     }, 100);
   },
-  4058189: () => window.innerWidth,
-  4058215: () => window.innerHeight,
-  4058242: () => {
+  2346141: () => window.innerWidth,
+  2346167: () => window.innerHeight,
+  2346194: () => {
     if (document.fullscreenElement) return 1;
   },
-  4058288: () => document.getElementById("canvas").width,
-  4058340: () => parseInt(document.getElementById("canvas").style.width),
-  4058408: () => {
+  2346240: () => document.getElementById("canvas").width,
+  2346292: () => parseInt(document.getElementById("canvas").style.width),
+  2346360: () => {
     if (document.fullscreenElement) return 1;
   },
-  4058454: () => document.getElementById("canvas").width,
-  4058506: () => screen.width,
-  4058531: () => window.innerWidth,
-  4058557: () => window.innerHeight,
-  4058584: () => {
+  2346406: () => document.getElementById("canvas").width,
+  2346458: () => screen.width,
+  2346483: () => window.innerWidth,
+  2346509: () => window.innerHeight,
+  2346536: () => {
     if (document.fullscreenElement) return 1;
   },
-  4058630: () => document.getElementById("canvas").width,
-  4058682: () => screen.width,
-  4058707: () => {
+  2346582: () => document.getElementById("canvas").width,
+  2346634: () => screen.width,
+  2346659: () => {
     document.exitFullscreen();
   },
-  4058734: () => {
+  2346686: () => {
     if (document.fullscreenElement) return 1;
   },
-  4058780: () => document.getElementById("canvas").width,
-  4058832: () => parseInt(document.getElementById("canvas").style.width),
-  4058900: () => {
+  2346732: () => document.getElementById("canvas").width,
+  2346784: () => parseInt(document.getElementById("canvas").style.width),
+  2346852: () => {
     document.exitFullscreen();
   },
-  4058927: $0 => {
+  2346879: $0 => {
     document.getElementById("canvas").style.opacity = $0;
   },
-  4058985: () => screen.width,
-  4059010: () => screen.height,
-  4059036: () => window.screenX,
-  4059063: () => window.screenY,
-  4059090: $0 => {
+  2346937: () => screen.width,
+  2346962: () => screen.height,
+  2346988: () => window.screenX,
+  2347015: () => window.screenY,
+  2347042: $0 => {
     navigator.clipboard.writeText(UTF8ToString($0));
   },
-  4059143: $0 => {
+  2347095: $0 => {
     document.getElementById("canvas").style.cursor = UTF8ToString($0);
   },
-  4059214: () => {
+  2347166: () => {
     document.getElementById("canvas").style.cursor = "none";
   },
-  4059271: ($0, $1, $2, $3) => {
+  2347223: ($0, $1, $2, $3) => {
     try {
       navigator.getGamepads()[$0].vibrationActuator.playEffect("dual-rumble", {
         startDelay: 0,
@@ -7522,147 +7583,149 @@ var ASM_CONSTS = {
       } catch (e) {}
     }
   },
-  4059527: $0 => {
+  2347479: $0 => {
     document.getElementById("canvas").style.cursor = UTF8ToString($0);
   },
-  4059598: () => {
+  2347550: () => {
     if (document.fullscreenElement) return 1;
   },
-  4059644: () => window.innerWidth,
-  4059670: () => window.innerHeight,
-  4059697: () => {
+  2347596: () => window.innerWidth,
+  2347622: () => window.innerHeight,
+  2347649: () => {
     if (document.pointerLockElement) return 1;
   }
 };
 
 var wasmImports = {
   /** @export */ c: ___assert_fail,
-  /** @export */ ub: ___syscall_chdir,
-  /** @export */ tb: ___syscall_faccessat,
+  /** @export */ S: ___cxa_throw,
+  /** @export */ wb: ___syscall_chdir,
+  /** @export */ vb: ___syscall_faccessat,
   /** @export */ R: ___syscall_fcntl64,
-  /** @export */ sb: ___syscall_getcwd,
-  /** @export */ rb: ___syscall_ioctl,
-  /** @export */ qb: ___syscall_openat,
-  /** @export */ mb: __emscripten_fs_load_embedded_files,
-  /** @export */ pb: _clock_time_get,
+  /** @export */ ub: ___syscall_getcwd,
+  /** @export */ tb: ___syscall_ioctl,
+  /** @export */ sb: ___syscall_openat,
+  /** @export */ ob: __abort_js,
+  /** @export */ nb: __emscripten_fs_load_embedded_files,
+  /** @export */ rb: _clock_time_get,
   /** @export */ t: _emscripten_asm_const_int,
-  /** @export */ lb: _emscripten_date_now,
-  /** @export */ kb: _emscripten_get_element_css_size,
-  /** @export */ jb: _emscripten_get_gamepad_status,
+  /** @export */ mb: _emscripten_date_now,
+  /** @export */ lb: _emscripten_get_element_css_size,
+  /** @export */ kb: _emscripten_get_gamepad_status,
   /** @export */ O: _emscripten_get_now,
-  /** @export */ ib: _emscripten_get_num_gamepads,
-  /** @export */ hb: _emscripten_request_pointerlock,
-  /** @export */ gb: _emscripten_resize_heap,
-  /** @export */ fb: _emscripten_sample_gamepad_data,
-  /** @export */ eb: _emscripten_set_canvas_element_size,
-  /** @export */ db: _emscripten_set_click_callback_on_thread,
-  /** @export */ cb: _emscripten_set_fullscreenchange_callback_on_thread,
-  /** @export */ bb: _emscripten_set_gamepadconnected_callback_on_thread,
-  /** @export */ ab: _emscripten_set_gamepaddisconnected_callback_on_thread,
-  /** @export */ $a: _emscripten_set_main_loop,
-  /** @export */ _a: _emscripten_set_mousemove_callback_on_thread,
-  /** @export */ Za: _emscripten_set_pointerlockchange_callback_on_thread,
-  /** @export */ Ya: _emscripten_set_resize_callback_on_thread,
-  /** @export */ Xa: _emscripten_set_touchcancel_callback_on_thread,
-  /** @export */ Wa: _emscripten_set_touchend_callback_on_thread,
-  /** @export */ Va: _emscripten_set_touchmove_callback_on_thread,
-  /** @export */ Ua: _emscripten_set_touchstart_callback_on_thread,
-  /** @export */ Ta: _emscripten_set_window_title,
-  /** @export */ Sa: _exit,
+  /** @export */ jb: _emscripten_get_num_gamepads,
+  /** @export */ ib: _emscripten_request_pointerlock,
+  /** @export */ hb: _emscripten_resize_heap,
+  /** @export */ gb: _emscripten_sample_gamepad_data,
+  /** @export */ fb: _emscripten_set_canvas_element_size,
+  /** @export */ eb: _emscripten_set_click_callback_on_thread,
+  /** @export */ db: _emscripten_set_fullscreenchange_callback_on_thread,
+  /** @export */ cb: _emscripten_set_gamepadconnected_callback_on_thread,
+  /** @export */ bb: _emscripten_set_gamepaddisconnected_callback_on_thread,
+  /** @export */ ab: _emscripten_set_main_loop,
+  /** @export */ $a: _emscripten_set_mousemove_callback_on_thread,
+  /** @export */ _a: _emscripten_set_pointerlockchange_callback_on_thread,
+  /** @export */ Za: _emscripten_set_resize_callback_on_thread,
+  /** @export */ Ya: _emscripten_set_touchcancel_callback_on_thread,
+  /** @export */ Xa: _emscripten_set_touchend_callback_on_thread,
+  /** @export */ Wa: _emscripten_set_touchmove_callback_on_thread,
+  /** @export */ Va: _emscripten_set_touchstart_callback_on_thread,
+  /** @export */ Ua: _emscripten_set_window_title,
+  /** @export */ Ta: _exit,
   /** @export */ Q: _fd_close,
-  /** @export */ ob: _fd_read,
-  /** @export */ nb: _fd_seek,
+  /** @export */ qb: _fd_read,
+  /** @export */ pb: _fd_seek,
   /** @export */ P: _fd_write,
   /** @export */ x: _glActiveTexture,
   /** @export */ N: _glAttachShader,
   /** @export */ j: _glBindAttribLocation,
-  /** @export */ b: _glBindBuffer,
+  /** @export */ a: _glBindBuffer,
   /** @export */ h: _glBindTexture,
   /** @export */ g: _glBindVertexArray,
-  /** @export */ Ra: _glBlendFunc,
+  /** @export */ Sa: _glBlendFunc,
   /** @export */ m: _glBufferData,
-  /** @export */ s: _glBufferSubData,
+  /** @export */ p: _glBufferSubData,
   /** @export */ M: _glClear,
   /** @export */ L: _glClearColor,
-  /** @export */ Qa: _glClearDepthf,
-  /** @export */ Pa: _glCompileShader,
-  /** @export */ Oa: _glCompressedTexImage2D,
-  /** @export */ Na: _glCreateProgram,
-  /** @export */ Ma: _glCreateShader,
-  /** @export */ La: _glCullFace,
+  /** @export */ Ra: _glClearDepthf,
+  /** @export */ Qa: _glCompileShader,
+  /** @export */ Pa: _glCompressedTexImage2D,
+  /** @export */ Oa: _glCreateProgram,
+  /** @export */ Na: _glCreateShader,
+  /** @export */ Ma: _glCullFace,
   /** @export */ o: _glDeleteBuffers,
   /** @export */ K: _glDeleteProgram,
   /** @export */ J: _glDeleteShader,
   /** @export */ I: _glDeleteTextures,
-  /** @export */ Ka: _glDeleteVertexArrays,
-  /** @export */ Ja: _glDepthFunc,
+  /** @export */ La: _glDeleteVertexArrays,
+  /** @export */ Ka: _glDepthFunc,
   /** @export */ H: _glDetachShader,
   /** @export */ G: _glDisable,
   /** @export */ e: _glDisableVertexAttribArray,
   /** @export */ F: _glDrawArrays,
   /** @export */ E: _glDrawElements,
   /** @export */ w: _glEnable,
-  /** @export */ a: _glEnableVertexAttribArray,
-  /** @export */ Ia: _glFrontFace,
+  /** @export */ b: _glEnableVertexAttribArray,
+  /** @export */ Ja: _glFrontFace,
   /** @export */ l: _glGenBuffers,
-  /** @export */ Ha: _glGenTextures,
+  /** @export */ Ia: _glGenTextures,
   /** @export */ D: _glGenVertexArrays,
   /** @export */ v: _glGetAttribLocation,
-  /** @export */ Ga: _glGetFloatv,
-  /** @export */ Fa: _glGetIntegerv,
-  /** @export */ Ea: _glGetProgramInfoLog,
+  /** @export */ Ha: _glGetFloatv,
+  /** @export */ Ga: _glGetIntegerv,
+  /** @export */ Fa: _glGetProgramInfoLog,
   /** @export */ C: _glGetProgramiv,
-  /** @export */ Da: _glGetShaderInfoLog,
+  /** @export */ Ea: _glGetShaderInfoLog,
   /** @export */ B: _glGetShaderiv,
-  /** @export */ r: _glGetString,
+  /** @export */ s: _glGetString,
   /** @export */ u: _glGetUniformLocation,
-  /** @export */ Ca: _glLinkProgram,
-  /** @export */ Ba: _glPixelStorei,
-  /** @export */ Aa: _glReadPixels,
-  /** @export */ za: _glShaderSource,
-  /** @export */ ya: _glTexImage2D,
-  /** @export */ q: _glTexParameteri,
-  /** @export */ xa: _glUniform1fv,
-  /** @export */ wa: _glUniform1i,
-  /** @export */ va: _glUniform1iv,
-  /** @export */ ua: _glUniform2fv,
-  /** @export */ ta: _glUniform2iv,
-  /** @export */ sa: _glUniform3fv,
-  /** @export */ ra: _glUniform3iv,
-  /** @export */ qa: _glUniform4f,
-  /** @export */ pa: _glUniform4fv,
-  /** @export */ oa: _glUniform4iv,
+  /** @export */ Da: _glLinkProgram,
+  /** @export */ Ca: _glPixelStorei,
+  /** @export */ Ba: _glReadPixels,
+  /** @export */ Aa: _glShaderSource,
+  /** @export */ za: _glTexImage2D,
+  /** @export */ r: _glTexParameteri,
+  /** @export */ ya: _glUniform1fv,
+  /** @export */ xa: _glUniform1i,
+  /** @export */ wa: _glUniform1iv,
+  /** @export */ va: _glUniform2fv,
+  /** @export */ ua: _glUniform2iv,
+  /** @export */ ta: _glUniform3fv,
+  /** @export */ sa: _glUniform3iv,
+  /** @export */ ra: _glUniform4f,
+  /** @export */ qa: _glUniform4fv,
+  /** @export */ pa: _glUniform4iv,
   /** @export */ k: _glUniformMatrix4fv,
   /** @export */ n: _glUseProgram,
-  /** @export */ na: _glVertexAttrib1fv,
-  /** @export */ ma: _glVertexAttrib2fv,
-  /** @export */ la: _glVertexAttrib3fv,
-  /** @export */ ka: _glVertexAttrib4fv,
+  /** @export */ oa: _glVertexAttrib1fv,
+  /** @export */ na: _glVertexAttrib2fv,
+  /** @export */ ma: _glVertexAttrib3fv,
+  /** @export */ la: _glVertexAttrib4fv,
   /** @export */ i: _glVertexAttribPointer,
-  /** @export */ p: _glViewport,
+  /** @export */ q: _glViewport,
   /** @export */ A: _glfwCreateWindow,
-  /** @export */ ja: _glfwDefaultWindowHints,
-  /** @export */ ia: _glfwDestroyWindow,
+  /** @export */ ka: _glfwDefaultWindowHints,
+  /** @export */ ja: _glfwDestroyWindow,
   /** @export */ z: _glfwGetPrimaryMonitor,
   /** @export */ d: _glfwGetTime,
-  /** @export */ ha: _glfwGetVideoModes,
-  /** @export */ ga: _glfwInit,
-  /** @export */ fa: _glfwMakeContextCurrent,
-  /** @export */ ea: _glfwSetCharCallback,
-  /** @export */ da: _glfwSetCursorEnterCallback,
-  /** @export */ ca: _glfwSetCursorPos,
-  /** @export */ ba: _glfwSetCursorPosCallback,
-  /** @export */ aa: _glfwSetDropCallback,
-  /** @export */ $: _glfwSetErrorCallback,
-  /** @export */ _: _glfwSetKeyCallback,
-  /** @export */ Z: _glfwSetMouseButtonCallback,
-  /** @export */ Y: _glfwSetScrollCallback,
-  /** @export */ X: _glfwSetWindowContentScaleCallback,
-  /** @export */ W: _glfwSetWindowFocusCallback,
-  /** @export */ V: _glfwSetWindowIconifyCallback,
-  /** @export */ U: _glfwSetWindowShouldClose,
-  /** @export */ T: _glfwSetWindowSizeCallback,
-  /** @export */ S: _glfwSwapBuffers,
+  /** @export */ ia: _glfwGetVideoModes,
+  /** @export */ ha: _glfwInit,
+  /** @export */ ga: _glfwMakeContextCurrent,
+  /** @export */ fa: _glfwSetCharCallback,
+  /** @export */ ea: _glfwSetCursorEnterCallback,
+  /** @export */ da: _glfwSetCursorPos,
+  /** @export */ ca: _glfwSetCursorPosCallback,
+  /** @export */ ba: _glfwSetDropCallback,
+  /** @export */ aa: _glfwSetErrorCallback,
+  /** @export */ $: _glfwSetKeyCallback,
+  /** @export */ _: _glfwSetMouseButtonCallback,
+  /** @export */ Z: _glfwSetScrollCallback,
+  /** @export */ Y: _glfwSetWindowContentScaleCallback,
+  /** @export */ X: _glfwSetWindowFocusCallback,
+  /** @export */ W: _glfwSetWindowIconifyCallback,
+  /** @export */ V: _glfwSetWindowShouldClose,
+  /** @export */ U: _glfwSetWindowSizeCallback,
+  /** @export */ T: _glfwSwapBuffers,
   /** @export */ y: _glfwTerminate,
   /** @export */ f: _glfwWindowHint
 };
@@ -7671,19 +7734,19 @@ var wasmExports;
 
 createWasm();
 
-var ___wasm_call_ctors = () => (___wasm_call_ctors = wasmExports["wb"])();
+var ___wasm_call_ctors = () => (___wasm_call_ctors = wasmExports["yb"])();
 
-var _main = Module["_main"] = (a0, a1) => (_main = Module["_main"] = wasmExports["xb"])(a0, a1);
+var _main = Module["_main"] = (a0, a1) => (_main = Module["_main"] = wasmExports["zb"])(a0, a1);
 
-var _malloc = a0 => (_malloc = wasmExports["zb"])(a0);
+var _malloc = a0 => (_malloc = wasmExports["Bb"])(a0);
 
-var _free = a0 => (_free = wasmExports["Ab"])(a0);
+var _free = a0 => (_free = wasmExports["Cb"])(a0);
 
-var _fflush = a0 => (_fflush = wasmExports["Bb"])(a0);
+var _fflush = a0 => (_fflush = wasmExports["Db"])(a0);
 
-var ___funcs_on_exit = () => (___funcs_on_exit = wasmExports["Cb"])();
+var ___funcs_on_exit = () => (___funcs_on_exit = wasmExports["Eb"])();
 
-var ___emscripten_embedded_file_data = Module["___emscripten_embedded_file_data"] = 4050808;
+var ___emscripten_embedded_file_data = Module["___emscripten_embedded_file_data"] = 2338144;
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
