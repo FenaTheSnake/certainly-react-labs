@@ -9,7 +9,7 @@ export const DirectionProvider = ({ children }) => {
   const [direction, setDirection] = useState(1);
 
   const handleNavigation = (newPath) => {
-    const pages = ["/", "/lab2", "/lab3"];
+    const pages = ["/", "/lab2", "/lab3", "/feedback"];
     const prevIndex = pages.indexOf(window.location.pathname);
     const currentIndex = pages.indexOf(newPath);
     console.log(window.location.pathname + " to " + newPath);

@@ -1,7 +1,7 @@
 // src/App.jsx
 import React, {createContext, useContext, useState, useEffect} from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { AppBar, Toolbar, Button, Container, Box, CssBaseline, ThemeProvider as MUIThemeProvider, createTheme, Drawer, TextField, Typography } from "@mui/material";
+import { AppBar, Toolbar, Button, Container, Box, CssBaseline, ThemeProvider as MUIThemeProvider, createTheme, Drawer, TextField, Typography, IconButton, Menu, MenuItem } from "@mui/material";
 import { Link } from "react-router-dom";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { configureStore, createSlice } from '@reduxjs/toolkit'
@@ -9,19 +9,54 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import "./index.css";
 import "./App.css";
+import MenuIcon from '@mui/icons-material/Menu';
+import AccountCircle from '@mui/icons-material/AccountCircle';
 
 import { DirectionProvider, useDirection } from "./DirectionContext.jsx";
 import { ParallaxContainer, pageAnimVariants, bgAnimVariants, bgAnimVariants2 } from "./ParallaxContainer.jsx";
 import { Lab2 } from "./Lab2.jsx";
 import { WASMTest } from "./WASM.jsx";
+import { Feedback } from "./Feedback.jsx";
+
+const authSlice = createSlice({
+  name: "auth",
+  initialState: { isAuthenticated: localStorage.getItem("auth") === "true" },
+  reducers: {
+    login: (state) => {
+      state.isAuthenticated = true;
+      localStorage.setItem("auth", "true");
+    },
+    logout: (state) => {
+      state.isAuthenticated = false;
+      localStorage.setItem("auth", "false");
+    },
+  },
+});
+
+const { actions, reducer } = authSlice;
+const store = configureStore({ reducer: { auth: reducer } });
+
+// Кастомный хук
+const useLoginState = () => {
+  return useSelector((state) => state.auth.isAuthenticated);
+};
 
 const AuthForm = ({ onClose }) => {
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const isAuthenticated = useLoginState();
+  const dispatch = useDispatch();
   
   const onSubmit = (data) => {
     console.log("Form Data:", data);
+    dispatch(actions.login())
     onClose();
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      onClose?.(); // Call onClose if defined
+    }
+  }, [isAuthenticated, onClose]);
   
   return (
     <Box sx={{ p: 3, width: 300 }}>
@@ -60,21 +95,76 @@ const AuthForm = ({ onClose }) => {
 
 const NavBar = ({toggleThemeFunction}) => {
   const { handleNavigation } = useDirection();
-  const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const isAuthenticated = useLoginState();
+  const [isDrawerOpen, setDrawerOpen] = useState(!isAuthenticated);
+  const dispatch = useDispatch();
+
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const handleMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    dispatch(actions.logout());
+    setAnchorEl(null);
+  };
 
   return (
-    <AppBar position="fixed" color="primary">
-      <Toolbar sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
-        <Button color="inherit" onClick={toggleThemeFunction}>Тема</Button>
-        <Button color="inherit" component={Link} to="/" onClick={() => handleNavigation("/")}>Главная</Button>
-        <Button color="inherit" component={Link} to="/lab2" onClick={() => handleNavigation("/lab2")}>Кнопки</Button>
-        <Button color="inherit" onClick={() => window.location.href = "/lab3"}>wasm</Button>
-        <Button color="inherit" onClick={() => setDrawerOpen(true)}>Войти</Button>
-      </Toolbar>
-      <Drawer anchor="right" open={isDrawerOpen} onClose={() => setDrawerOpen(false)}>
-        <AuthForm onClose={() => setDrawerOpen(false)} />
-      </Drawer>
-    </AppBar>
+    <Box sx={{flexGrow:1}}>
+      <AppBar position="fixed" color="primary">
+        <Toolbar sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+
+          <Button color="inherit" onClick={toggleThemeFunction}>Тема</Button>
+          <Button color="inherit" component={Link} to="/" onClick={() => handleNavigation("/")}>Главная</Button>
+          <Button color="inherit" component={Link} to="/lab2" onClick={() => handleNavigation("/lab2")}>Кнопки</Button>
+          <Button color="inherit" onClick={() => window.location.href = "/lab3"}>wasm</Button>
+          <Box sx={{flexGrow:1}}>
+            <Button color="inherit" component={Link} to="/feedback" onClick={() => handleNavigation("/feedback")}>Обратная связь</Button>
+          </Box>
+
+          {(isAuthenticated && (
+            <div>
+              <IconButton
+                size="large"
+                aria-label="account of current user"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                onClick={handleMenu}
+                color="inherit"
+              >
+                <AccountCircle />
+              </IconButton>
+
+              <Menu
+                id="menu-appbar"
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+              >
+                <MenuItem onClick={handleClose}>Выйти</MenuItem>
+              </Menu>
+            </div>
+            )
+            ||
+            (<Button color="inherit" onClick={() => setDrawerOpen(true)}>Войти</Button>))
+          }
+
+        </Toolbar>
+
+        <Drawer anchor="right" open={isDrawerOpen} onClose={() => {if(isAuthenticated) setDrawerOpen(false)}}>
+          <AuthForm onClose={() => {if(isAuthenticated) setDrawerOpen(false)}} />
+        </Drawer>
+
+      </AppBar>
+    </Box>
   );
 };
 
@@ -130,6 +220,7 @@ const AnimatedRoutes = () => {
         <Route path="/" element={<Home direction={direction} />} />
         <Route path="/lab2" element={<Lab2 direction={direction} />} />
         <Route path="/lab3" element={<WASMTest direction={direction} />} />
+        <Route path="/feedback" element={<Feedback direction={direction} />} />
       </Routes>
     </AnimatePresence>
   );
@@ -177,9 +268,11 @@ const App = () => {
 };
 
 const Root = () => (
-  <ThemeProvider>
-    <App />
-  </ThemeProvider>
+  <Provider store={store}>
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  </Provider>
 );
 
 export default Root;

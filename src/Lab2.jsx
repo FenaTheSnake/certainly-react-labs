@@ -54,7 +54,7 @@ export const Lab2 = ({ direction }) => (
           <ParallaxContainer direction={direction}  animation={pageAnimVariants}>
             <h1>Кнопки</h1>
             <Button>Давай, нажми меня</Button>
-            <Counter></Counter>
+            <Counter />
           </ParallaxContainer>
         </Box>
     </Box>
