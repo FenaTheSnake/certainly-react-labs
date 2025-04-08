@@ -4,6 +4,7 @@ import { AppBar, Toolbar, Button, Container, Box, ThemeProvider, createTheme } f
 import { ParallaxContainer, pageAnimVariants, bgAnimVariants, bgAnimVariants2 } from "./ParallaxContainer.jsx";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { configureStore, createSlice } from '@reduxjs/toolkit'
+import { motion, AnimatePresence } from "framer-motion";
 
 const counterSlice = createSlice({
   name: "counter",
@@ -44,13 +45,32 @@ export const Lab2 = ({ direction }) => (
       height: '100vh',
       overflow: 'hidden',
     }}>
-        <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%'}}>
+        <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%', zIndex: 2}}>
+            <ParallaxContainer direction={direction}  animation={bgAnimVariants2}>
+            <motion.div animate={{x: '-800px', transition:{duration:10.0, ease:"linear", repeat: Infinity, repeatType: "loop"}}}>
+                <div className="full-width-tiling-buttons"></div>
+            </motion.div>
+            </ParallaxContainer>
+        </Box>
+        <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%', zIndex: 2}}>
+          <ParallaxContainer direction={direction}  animation={bgAnimVariants2}>
+            <img src='/welcome-stanley.png' style={{width:'100vw', opacity:'1%'}}></img>
+          </ParallaxContainer>
+        </Box>
+
+
+        {/* <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%'}}>
           <ParallaxContainer direction={direction}  animation={bgAnimVariants}>
             <img src='/bg2.png' style={{width:'100vw'}}></img>
           </ParallaxContainer>
         </Box>
+        <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%'}}>
+          <ParallaxContainer direction={direction}  animation={bgAnimVariants2}>
+            <img src='/bg22.png' style={{width:'100vw'}}></img>
+          </ParallaxContainer>
+        </Box> */}
   
-        <Box sx={{position:'absolute', width: '100%', height:'100%', display:'flex', justifyContent: 'center', alignItems: 'center', textAlign: "center"}}>
+        <Box sx={{position:'absolute', width: '100%', height:'100%', display:'flex', justifyContent: 'center', alignItems: 'center', textAlign: "center", zIndex: 5}}>
           <ParallaxContainer direction={direction}  animation={pageAnimVariants}>
             <h1>Кнопки</h1>
             <Button>Давай, нажми меня</Button>

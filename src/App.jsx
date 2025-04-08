@@ -38,12 +38,25 @@ const store = configureStore({ reducer: { auth: reducer } });
 
 // Кастомный хук
 const useLoginState = () => {
-  return useSelector((state) => state.auth.isAuthenticated);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const dispatch = useDispatch();
+
+  const setLoginState = (value) => {
+    if (value) {
+      dispatch(actions.login());
+    } else {
+      dispatch(actions.logout());
+    }
+  };
+
+  return [isAuthenticated, setLoginState];
+
+  //return useSelector((state) => state.auth.isAuthenticated);
 };
 
 const AuthForm = ({ onClose }) => {
   const { register, handleSubmit, formState: { errors } } = useForm();
-  const isAuthenticated = useLoginState();
+  const [isAuthenticated, setLoginState] = useLoginState();
   const dispatch = useDispatch();
   
   const onSubmit = (data) => {
@@ -95,7 +108,7 @@ const AuthForm = ({ onClose }) => {
 
 const NavBar = ({toggleThemeFunction}) => {
   const { handleNavigation } = useDirection();
-  const isAuthenticated = useLoginState();
+  const [isAuthenticated, setLoginState] = useLoginState();
   const [isDrawerOpen, setDrawerOpen] = useState(!isAuthenticated);
   const dispatch = useDispatch();
 
@@ -104,8 +117,12 @@ const NavBar = ({toggleThemeFunction}) => {
     setAnchorEl(event.currentTarget);
   };
   const handleClose = () => {
+    setAnchorEl(null);
+  };
+  const handleLogout = () => {
     dispatch(actions.logout());
     setAnchorEl(null);
+    setDrawerOpen(true);
   };
 
   return (
@@ -149,7 +166,7 @@ const NavBar = ({toggleThemeFunction}) => {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
-                <MenuItem onClick={handleClose}>Выйти</MenuItem>
+                <MenuItem onClick={handleLogout}>Выйти</MenuItem>
               </Menu>
             </div>
             )
@@ -209,18 +226,26 @@ const Home = ({ direction }) => {
   );
 }
 
+
+
 const AnimatedRoutes = () => {
   const location = useLocation();
+  const pages = [ {path: '/', c: Home}, 
+                  {path: '/lab2', c: Lab2}, 
+                  {path: '/lab3', c: WASMTest}, 
+                  {path: '/feedback', c: Feedback}, 
+  ]
 
   const { direction } = useDirection();
 
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Home direction={direction} />} />
-        <Route path="/lab2" element={<Lab2 direction={direction} />} />
-        <Route path="/lab3" element={<WASMTest direction={direction} />} />
-        <Route path="/feedback" element={<Feedback direction={direction} />} />
+
+        {pages.map(function(item, i){
+          return <Route path={item.path} element={React.createElement(item.c, {direction: direction})} />
+        })}
+
       </Routes>
     </AnimatePresence>
   );

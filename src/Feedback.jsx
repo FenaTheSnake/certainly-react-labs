@@ -1,7 +1,7 @@
 
 import React, { useCallback, useState, useEffect } from 'react';
 import { AppBar, Toolbar, Button, Container, Box, ThemeProvider, createTheme, TextField, Avatar, Stack } from "@mui/material";
-import { ParallaxContainer, pageAnimVariants, bgAnimVariants, bgAnimVariants2 } from "./ParallaxContainer.jsx";
+import { ParallaxContainer, pageAnimVariants, bgAnimVariants, bgAnimVariants2, bgAnimVariants3 } from "./ParallaxContainer.jsx";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { configureStore, createSlice } from '@reduxjs/toolkit';
 import { useForm } from "react-hook-form";
@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { motion, AnimatePresence } from "framer-motion";
 
 export const Feedback = ({ direction }) => {
     const { register, handleSubmit, formState: { errors } } = useForm();
@@ -59,33 +60,51 @@ export const Feedback = ({ direction }) => {
         height: '100vh',
         overflow: 'hidden',
     }}>
-        {/* <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%'}}>
-            <ParallaxContainer direction={direction}  animation={bgAnimVariants}>
-            <img src='/bg2.png' style={{width:'100vw'}}></img>
+        <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%', zIndex: 2}}>
+            <ParallaxContainer direction={direction}  animation={bgAnimVariants2}>
+            <motion.div animate={{x: '-800px', transition:{duration:10.0, ease:"linear", repeat: Infinity, repeatType: "loop"}}}>
+                <div className="full-width-tiling-emojis"></div>
+            </motion.div>
             </ParallaxContainer>
         </Box>
-    */}
-        <Box sx={{position:'absolute', width: '100%', height:'100%', display:'flex', justifyContent: 'center', alignItems: 'center', textAlign: "center"}}>
+        
+        {/* <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%', zIndex: 2}}>
+            <ParallaxContainer direction={direction}  animation={bgAnimVariants2}>
+            <img src='/feedback-bg/people.png' style={{width:'100vw'}}></img>
+            </ParallaxContainer>
+        </Box>
+        <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%', zIndex: 3}}>
+            <ParallaxContainer direction={direction}  animation={bgAnimVariants3}>
+            <img src='/feedback-bg/bubbles.png' style={{width:'100vw'}}></img>
+            </ParallaxContainer>
+        </Box>
+        <Box sx={{position:'absolute', width:'100%', height:'100%', left:'0%', zIndex: 4}}>
+            <ParallaxContainer direction={direction}  animation={bgAnimVariants}>
+            <img src='/feedback-bg/nine.png' style={{width:'100vw'}}></img>
+            </ParallaxContainer>
+        </Box> */}
+   
+        <Box sx={{position:'absolute', width: '100%', height:'100%', display:'flex', justifyContent: 'center', alignItems: 'center', textAlign: "center", zIndex:5}}>
             <ParallaxContainer direction={direction}  animation={pageAnimVariants}>
 
                 <h1>Обратная связь</h1>
         
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <Box sx={{display:'flex', marginX: '20%', width: '60%', justifyContent: 'center', alignItems: 'center', textAlign: "center", justifyItems: 'center', alignContent: 'center'}}>
-                            <TextField
-                            id="standard-multiline-static"
-                            label="Введите ваши жалобы..."
-                            multiline
-                            fullWidth
-                            inputRef={register("feedback", { 
-                                required: "Введите что-нибудь, а", 
-                                minLength: { value: 20, message: "Побольше букв" } 
-                            }).ref}
-                            {...register("feedback")}
-                            rows={8}
-                            variant="filled"
-                            error={!!errors.feedback}
-                            />
+                    <Box sx={{display:'flex', marginX: '20%', width: '60%', zIndex: 6}}>
+                        <TextField
+                        id="standard-multiline-static"
+                        label="Введите ваши жалобы..."
+                        multiline
+                        fullWidth
+                        inputRef={register("feedback", { 
+                            required: "Введите что-нибудь, а", 
+                            minLength: { value: 20, message: "Побольше букв" } 
+                        }).ref}
+                        {...register("feedback")}
+                        rows={8}
+                        variant="filled"
+                        error={!!errors.feedback}
+                        />
                     </Box>
                     <Button type="submit" variant="contained" sx={{ mt: 2 }}>Отправить</Button>
 

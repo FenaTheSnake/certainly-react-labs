@@ -49,6 +49,22 @@ export const bgAnimVariants2 = {
       transition: { duration: .5, ease: [.87,.02,.92,.45] },
     }),
   };
+  export const bgAnimVariants3 = {
+    initial: (direction) => ({
+      x: direction > 0 ? "25%" : "-25%",
+      opacity: 0,
+    }),
+    animate: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 1.0, ease: [.33,.88,0,1.02] },
+    },
+    exit: (direction) => ({
+      x: direction > 0 ? "-25%" : "25%",
+      opacity: 0,
+      transition: { duration: .5, ease: [.87,.02,.92,.45] },
+    }),
+  };
 
 export const ParallaxContainer = ({ children, direction, animation }) => (
     <motion.div
