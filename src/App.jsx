@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import { AppBar, Toolbar, Button, Container, Box, CssBaseline, ThemeProvider as MUIThemeProvider, createTheme, Drawer, TextField, Typography, IconButton, Menu, MenuItem } from "@mui/material";
 import { Link } from "react-router-dom";
 import { Provider, useDispatch, useSelector } from "react-redux";
-import { configureStore, createSlice } from '@reduxjs/toolkit'
+import { configureStore, createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import "./index.css";
@@ -17,173 +17,12 @@ import { ParallaxContainer, pageAnimVariants, bgAnimVariants, bgAnimVariants2 } 
 import { Lab2 } from "./Lab2.jsx";
 import { WASMTest } from "./WASM.jsx";
 import { Feedback } from "./Feedback.jsx";
+import { Profile } from "./components/Profile.jsx";
 
-const authSlice = createSlice({
-  name: "auth",
-  initialState: { isAuthenticated: localStorage.getItem("auth") === "true" },
-  reducers: {
-    login: (state) => {
-      state.isAuthenticated = true;
-      localStorage.setItem("auth", "true");
-    },
-    logout: (state) => {
-      state.isAuthenticated = false;
-      localStorage.setItem("auth", "false");
-    },
-  },
-});
+import { NavBar } from "./components/NavBar.jsx";
+import { AuthProvider } from "./contexts/AuthContext.jsx";
 
-const { actions, reducer } = authSlice;
-const store = configureStore({ reducer: { auth: reducer } });
-
-// Кастомный хук
-const useLoginState = () => {
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-  const dispatch = useDispatch();
-
-  const setLoginState = (value) => {
-    if (value) {
-      dispatch(actions.login());
-    } else {
-      dispatch(actions.logout());
-    }
-  };
-
-  return [isAuthenticated, setLoginState];
-
-  //return useSelector((state) => state.auth.isAuthenticated);
-};
-
-const AuthForm = ({ onClose }) => {
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  const [isAuthenticated, setLoginState] = useLoginState();
-  const dispatch = useDispatch();
-  
-  const onSubmit = (data) => {
-    console.log("Form Data:", data);
-    dispatch(actions.login())
-    onClose();
-  };
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      onClose?.(); // Call onClose if defined
-    }
-  }, [isAuthenticated, onClose]);
-  
-  return (
-    <Box sx={{ p: 3, width: 300 }}>
-      <Typography variant="h6" gutterBottom>Вход / Регистрация</Typography>
-      <form onSubmit={handleSubmit(onSubmit)}>
-      <TextField
-        label="Email"
-        fullWidth
-        margin="normal"
-        inputRef={register("email", { 
-          required: "Введите email", 
-          pattern: { value: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, message: "Некорректный email" } 
-        }).ref}
-        {...register("email")}
-        error={!!errors.email}
-        helperText={errors.email?.message}
-      />
-      <TextField
-        label="Пароль"
-        type="password"
-        fullWidth
-        margin="normal"
-        inputRef={register("password", { 
-          required: "Введите пароль", 
-          minLength: { value: 6, message: "Минимум 6 символов" } 
-        }).ref}
-        {...register("password")}
-        error={!!errors.password}
-        helperText={errors.password?.message}
-      />
-        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>Отправить</Button>
-      </form>
-    </Box>
-  );
-};
-
-const NavBar = ({toggleThemeFunction}) => {
-  const { handleNavigation } = useDirection();
-  const [isAuthenticated, setLoginState] = useLoginState();
-  const [isDrawerOpen, setDrawerOpen] = useState(!isAuthenticated);
-  const dispatch = useDispatch();
-
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-  const handleLogout = () => {
-    dispatch(actions.logout());
-    setAnchorEl(null);
-    setDrawerOpen(true);
-  };
-
-  return (
-    <Box sx={{flexGrow:1}}>
-      <AppBar position="fixed" color="primary">
-        <Toolbar sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
-
-          <Button color="inherit" onClick={toggleThemeFunction}>Тема</Button>
-          <Button color="inherit" component={Link} to="/" onClick={() => handleNavigation("/")}>Главная</Button>
-          <Button color="inherit" component={Link} to="/lab2" onClick={() => handleNavigation("/lab2")}>Кнопки</Button>
-          <Button color="inherit" onClick={() => window.location.href = "/lab3"}>wasm</Button>
-          <Box sx={{flexGrow:1}}>
-            <Button color="inherit" component={Link} to="/feedback" onClick={() => handleNavigation("/feedback")}>Обратная связь</Button>
-          </Box>
-
-          {(isAuthenticated && (
-            <div>
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleMenu}
-                color="inherit"
-              >
-                <AccountCircle />
-              </IconButton>
-
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-              >
-                <MenuItem onClick={handleLogout}>Выйти</MenuItem>
-              </Menu>
-            </div>
-            )
-            ||
-            (<Button color="inherit" onClick={() => setDrawerOpen(true)}>Войти</Button>))
-          }
-
-        </Toolbar>
-
-        <Drawer anchor="right" open={isDrawerOpen} onClose={() => {if(isAuthenticated) setDrawerOpen(false)}}>
-          <AuthForm onClose={() => {if(isAuthenticated) setDrawerOpen(false)}} />
-        </Drawer>
-
-      </AppBar>
-    </Box>
-  );
-};
+const store = configureStore({ reducer: { } });
 
 const Home = ({ direction }) => {
   return (
@@ -234,6 +73,7 @@ const AnimatedRoutes = () => {
                   {path: '/lab2', c: Lab2}, 
                   {path: '/lab3', c: WASMTest}, 
                   {path: '/feedback', c: Feedback}, 
+                  {path: '/profile', c: Profile}, 
   ]
 
   const { direction } = useDirection();
@@ -295,7 +135,9 @@ const App = () => {
 const Root = () => (
   <Provider store={store}>
     <ThemeProvider>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </ThemeProvider>
   </Provider>
 );

@@ -1,0 +1,21 @@
+{
+  "users": [
+    {
+      "email": "admin@a.com",
+      "password": "123456",
+      "about": "I AM ADMIN"
+    },
+    {
+      "email": "user@example.com",
+      "password": "123456",
+      "about": "hello!!!!"
+    }
+  ],
+  "feedbacks": [
+    {
+      "id": 2,
+      "author": "admin@a.com",
+      "content": "я очень с ильно недоволен :(((("
+    }
+  ]
+}

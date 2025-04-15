@@ -13,43 +13,53 @@ import IconButton from '@mui/material/IconButton';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { motion, AnimatePresence } from "framer-motion";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 export const Feedback = ({ direction }) => {
-    const { register, handleSubmit, formState: { errors } } = useForm();
+    const { register, handleSubmit, reset, formState: { errors } } = useForm();
     const [reviews, setReviews] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
-        const storedReviews = JSON.parse(localStorage.getItem('reviews')) || [
-            { nickname: 'User1', comment: 'Отличный сервис!' },
-            { nickname: 'User2', comment: 'Очень понравилось, рекомендую!' }
-        ];
-        setReviews(storedReviews);
-    }, []);
+        fetch("http://localhost:4000/feedbacks")
+          .then((res) => res.json())
+          .then((data) => setReviews(data))
+          .catch((err) => console.error("Ошибка загрузки отзывов:", err));
+      }, []);
 
-    const handleNextReview = () => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % reviews.length);
-    };
-    const handlePrevReview = () => {
-        setCurrentIndex((prevIndex) => {
-            let ind = (prevIndex - 1) % reviews.length;
-            if(ind < 0) ind = reviews.length + ind;
-            return ind;
-        });
-    };
+      const handlePrevReview = () => {
+        setCurrentIndex((prev) => (prev === 0 ? reviews.length - 1 : prev - 1));
+      };
+    
+      const handleNextReview = () => {
+        setCurrentIndex((prev) => (prev + 1) % reviews.length);
+      };
 
-    const onSubmit = useCallback((data) => {
-        console.log("Форма отправлена:", data);
-
-        const reviews = JSON.parse(localStorage.getItem('reviews')) || [
-            { nickname: 'User1', comment: 'Отличный сервис!' },
-            { nickname: 'User2', comment: 'Очень понравилось, рекомендую!' }
-        ];
-        reviews.push({nickname: 'Me', comment: data.feedback});
-
-        setReviews(reviews);
-        localStorage.setItem('reviews', JSON.stringify(reviews));
-    }, []);
+    const onSubmit = async (data) => {
+        const newFeedback = {
+          author: localStorage.getItem("email"), // можно добавить поле для ввода автора
+          content: data.feedback,
+        };
+    
+        try {
+          const res = await fetch("http://localhost:4000/feedbacks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newFeedback),
+          });
+    
+          if (res.ok) {
+            const added = await res.json();
+            setReviews((prev) => [...prev, added.feedback]);
+            reset();
+          } else {
+            console.error("Ошибка при отправке отзыва");
+          }
+        } catch (err) {
+          console.error("Ошибка сети при отправке:", err);
+        }
+      };
+    
     
     return (
     <Box sx={{
@@ -117,13 +127,42 @@ export const Feedback = ({ direction }) => {
                         <Card sx={{ marginX: '25%', width: '50%', marginY: 2, textAlign: 'left' }}>
                             <CardContent>
                                 <Stack direction="row" spacing={2}>
-                                    <Avatar>{reviews[currentIndex].nickname.charAt(0).toUpperCase()}</Avatar>
+                                    <Avatar>{reviews[currentIndex].author?.charAt(0).toUpperCase()}</Avatar>
                                     <Typography variant="h6" component="div">
-                                        {reviews[currentIndex].nickname}
+                                        {reviews[currentIndex].author}
                                     </Typography>
+                                    <IconButton
+                                        color="error"
+                                        onClick={async () => {
+                                        const toDelete = reviews[currentIndex];
+                                        if (window.confirm("Удалить отзыв?")) {
+                                            try {
+                                            const res = await fetch(`http://localhost:4000/feedbacks/${toDelete.id}`, {
+                                                method: "DELETE",
+                                            });
+
+                                            if (res.ok) {
+                                                setReviews(prev => {
+                                                const updated = prev.filter(f => f.id !== toDelete.id);
+                                                // Скорректируем индекс
+                                                const nextIndex = Math.max(0, currentIndex - (currentIndex === updated.length ? 1 : 0));
+                                                setCurrentIndex(nextIndex);
+                                                return updated;
+                                                });
+                                            } else {
+                                                console.error("Ошибка удаления отзыва");
+                                            }
+                                            } catch (err) {
+                                            console.error("Сетевая ошибка при удалении отзыва:", err);
+                                            }
+                                        }
+                                        }}
+                                    >
+                                    <DeleteIcon />
+                                    </IconButton>
                                 </Stack>
                                 <Typography sx={{ mt: 1.5 }} variant="body2">
-                                    {reviews[currentIndex].comment}
+                                    {reviews[currentIndex].content}
                                 </Typography>
                             </CardContent>
                         </Card>
