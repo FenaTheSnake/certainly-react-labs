@@ -12,17 +12,20 @@ import "./App.css";
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 
-import { DirectionProvider, useDirection } from "./DirectionContext.jsx";
-import { ParallaxContainer, pageAnimVariants, bgAnimVariants, bgAnimVariants2 } from "./ParallaxContainer.jsx";
-import { Lab2 } from "./Lab2.jsx";
-import { WASMTest } from "./WASM.jsx";
-import { Feedback } from "./Feedback.jsx";
+import { DirectionProvider, useDirection } from "./contexts/DirectionContext.jsx";
+import { ParallaxContainer, pageAnimVariants, bgAnimVariants, bgAnimVariants2 } from "./components/ParallaxContainer.jsx";
+import { Lab2 } from "./components/Lab2.jsx";
+import { WASMTest } from "./components/WASM.jsx";
+import { Feedback } from "./components/Feedback.jsx";
 import { Profile } from "./components/Profile.jsx";
+import { AdminPanel } from "./components/AdminPanel.jsx";
 
 import { NavBar } from "./components/NavBar.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 
-const store = configureStore({ reducer: { } });
+import authReducer from "./slices/authSlice.js"; // проверь путь
+
+const store = configureStore({ reducer: { auth: authReducer } });
 
 const Home = ({ direction }) => {
   return (
@@ -71,9 +74,10 @@ const AnimatedRoutes = () => {
   const location = useLocation();
   const pages = [ {path: '/', c: Home}, 
                   {path: '/lab2', c: Lab2}, 
-                  {path: '/lab3', c: WASMTest}, 
+                  {path: '/wasm', c: WASMTest}, 
                   {path: '/feedback', c: Feedback}, 
                   {path: '/profile', c: Profile}, 
+                  {path: '/adminpanel', c: AdminPanel}, 
   ]
 
   const { direction } = useDirection();

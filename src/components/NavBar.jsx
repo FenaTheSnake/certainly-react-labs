@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useState, useEffect} from "react";
-import { DirectionProvider, useDirection } from "../DirectionContext.jsx";
+import { DirectionProvider, useDirection } from "../contexts/DirectionContext.jsx";
 import { AppBar, Toolbar, Button, Container, Box, CssBaseline, ThemeProvider as MUIThemeProvider, createTheme, Drawer, TextField, Typography, IconButton, Menu, MenuItem } from "@mui/material";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -23,8 +23,9 @@ const AuthForm = ({ onClose }) => {
 
         if(action === "login") {
             dispatch(login(data)).then((status) => {
-                if(status.payload == true) {
-                    setLoginState(true);
+                console.log(status);
+                if(status.payload !== undefined) {
+                    setLoginState(true, status.payload);
                     onClose();
                     console.log("login state = true");
                 } else {
@@ -33,8 +34,8 @@ const AuthForm = ({ onClose }) => {
             });
         } else if (action === "register") {
             dispatch(registerUser(data)).then((status) => {
-                if(status.payload == true) {
-                    setLoginState(true);
+                if(status.payload !== undefined) {
+                    setLoginState(true, status.payload);
                     onClose();
                     console.log("new user registered");
                 } else {
@@ -88,7 +89,7 @@ const AuthForm = ({ onClose }) => {
   
   export const NavBar = ({toggleThemeFunction}) => {
     const { handleNavigation } = useDirection();
-    const {isAuthenticated, setLoginState} = useLoginState();
+    const {isAuthenticated, setLoginState, user} = useLoginState();
     const [isDrawerOpen, setDrawerOpen] = useState(!isAuthenticated);
     const dispatch = useDispatch();
   
@@ -116,16 +117,19 @@ const AuthForm = ({ onClose }) => {
             <Button color="inherit" onClick={toggleThemeFunction}>Тема</Button>
             <Button color="inherit" component={Link} to="/" onClick={() => handleNavigation("/")}>Главная</Button>
             <Button color="inherit" component={Link} to="/lab2" onClick={() => handleNavigation("/lab2")}>Кнопки</Button>
-            <Button color="inherit" onClick={() => window.location.href = "/lab3"}>wasm</Button>
+            <Button color="inherit" onClick={() => window.location.href = "/wasm"}>wasm</Button>
             <Button color="inherit" component={Link} to="/feedback" onClick={() => handleNavigation("/feedback")}>Обратная связь</Button>
+            {(isAuthenticated && (
+                <Button color="inherit" component={Link} to="/profile" onClick={() => handleNavigation("/profile")}>Профиль</Button>
+            ) || (
+                <Button color="inherit" onClick={() => setDrawerOpen(true)}>Профиль</Button>
+            )
+            )}
             <Box sx={{flexGrow:1}}>
-                {(isAuthenticated && (
-                    <Button color="inherit" component={Link} to="/profile" onClick={() => handleNavigation("/feedback")}>Профиль</Button>
-                ) || (
-                    <Button color="inherit" onClick={() => setDrawerOpen(true)}>Профиль</Button>
+                {(user?.role === "admin" && (
+                    <Button color="inherit" component={Link} to="/adminpanel" onClick={() => handleNavigation("/adminpanel")}>Админ панель</Button>
                 )
                 )}
-              
             </Box>
   
             {(isAuthenticated && (

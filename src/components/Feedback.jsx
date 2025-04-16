@@ -14,8 +14,11 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { motion, AnimatePresence } from "framer-motion";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { updateAbout } from "../slices/authSlice.js";
+import { useLoginState } from "../contexts/AuthContext.jsx";
 
 export const Feedback = ({ direction }) => {
+    const { user } = useLoginState();
     const { register, handleSubmit, reset, formState: { errors } } = useForm();
     const [reviews, setReviews] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -37,7 +40,7 @@ export const Feedback = ({ direction }) => {
 
     const onSubmit = async (data) => {
         const newFeedback = {
-          author: localStorage.getItem("email"), // можно добавить поле для ввода автора
+          author: user.email,
           content: data.feedback,
         };
     
@@ -131,7 +134,7 @@ export const Feedback = ({ direction }) => {
                                     <Typography variant="h6" component="div">
                                         {reviews[currentIndex].author}
                                     </Typography>
-                                    <IconButton
+                                    {/* <IconButton
                                         color="error"
                                         onClick={async () => {
                                         const toDelete = reviews[currentIndex];
@@ -159,7 +162,7 @@ export const Feedback = ({ direction }) => {
                                         }}
                                     >
                                     <DeleteIcon />
-                                    </IconButton>
+                                    </IconButton> */}
                                 </Stack>
                                 <Typography sx={{ mt: 1.5 }} variant="body2">
                                     {reviews[currentIndex].content}

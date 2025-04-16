@@ -45,11 +45,11 @@ app.post("/login", (req, res) => {
   );
 
   if (user) {
-    return res.json({ success: true, message: "Login successful" });
+    return res.json({ success: true, user: user });
   } else {
     return res
       .status(401)
-      .json({ success: false, message: "Invalid credentials" });
+      .json({ success: false });
   }
 });
 
@@ -66,10 +66,11 @@ app.post("/register", (req, res) => {
 
   const newUser = { email, password };
   newUser.about = "Hello!";
+  newUser.role = "user";
   users.push(newUser);
   writeUsers(users);
 
-  return res.status(201).json({ success: true, message: "User registered" });
+  return res.status(201).json({ success: true, user: newUser });
 });
 
 // Получить информацию о пользователе по email
@@ -155,4 +156,44 @@ app.delete("/feedbacks/:id", (req, res) => {
   writeFeedbacks(feedbacks);
 
   res.json({ message: "Feedback deleted", deleted: removed[0] });
+});
+
+app.get("/users", (req, res) => {
+  const users = readUsers();
+  const sanitizedUsers = users.map(({ email, role, status = "active" }) => ({
+    email,
+    role,
+    status,
+  }));
+  res.json({ success: true, users: sanitizedUsers });
+});
+
+app.delete("/users/:email", (req, res) => {
+  const email = req.params.email;
+  let users = readUsers();
+  const existing = users.find((u) => u.email === email);
+
+  if (!existing) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  users = users.filter((u) => u.email !== email);
+  writeUsers(users);
+
+  res.json({ success: true, message: "User deleted" });
+});
+
+app.post("/users/block/:email", (req, res) => {
+  const email = req.params.email;
+  const users = readUsers();
+  const user = users.find((u) => u.email === email);
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  user.status = user.status == "active" ? "blocked" : "active";
+  writeUsers(users);
+
+  res.json({ success: true, message: "User blocked" });
 });

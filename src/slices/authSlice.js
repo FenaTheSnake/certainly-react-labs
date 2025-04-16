@@ -1,24 +1,28 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { useLoginState } from "../states/useLoginState";
+//import { useLoginState } from "../states/useLoginState";
 
 // Async login
 export const login = createAsyncThunk("auth/login", async (credentials, thunkAPI) => {
-    //const {isAuthenticated, setLoginState} = useLoginState();
-
-    const response = await fetch("http://localhost:4000/login", {
+  const response = await fetch("http://localhost:4000/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(credentials),
-    });
+  });
 
-    if (!response.ok) {
-        const error = await response.json();
-        return thunkAPI.rejectWithValue(error.message);
-    }
+  if (!response.ok) {
+    const error = await response.json();
+    return thunkAPI.rejectWithValue(error.message);
+  }
 
-    localStorage.setItem("email", credentials.email);
-    return true;
+  const data = await response.json();
+  const user = data.user;
+
+  // Можно сохранить в localStorage, если нужно
+  localStorage.setItem("user", JSON.stringify(user));
+
+  return user;
 });
+
 
 export const registerUser = createAsyncThunk("auth/register", async (credentials, thunkAPI) => {
   //const {isAuthenticated, setLoginState} = useLoginState();
@@ -34,7 +38,13 @@ export const registerUser = createAsyncThunk("auth/register", async (credentials
       return thunkAPI.rejectWithValue(error.message);
   }
 
-  return true;
+  const data = await response.json();
+  const user = data.user;
+
+  // Можно сохранить в localStorage, если нужно
+  localStorage.setItem("user", JSON.stringify(user));
+
+  return user;
 });
 
 export const updateAbout = createAsyncThunk(
@@ -72,6 +82,7 @@ const authSlice = createSlice({
   name: "auth",
   initialState: {
     isAuthenticated: localStorage.getItem("auth") === "true",
+    user: null,
     status: "idle",
     error: null,
   },
@@ -82,9 +93,10 @@ const authSlice = createSlice({
         state.status = "loading";
         state.error = null;
       })
-      .addCase(login.fulfilled, (state) => {
+      .addCase(login.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.isAuthenticated = true;
+        state.user = action.payload;
       })
       .addCase(login.rejected, (state, action) => {
         state.status = "failed";
@@ -93,6 +105,8 @@ const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.isAuthenticated = false;
         state.status = "idle";
+        state.user = null;
+        localStorage.removeItem("user");
       });
   },
 });

@@ -3,19 +3,23 @@
     {
       "email": "admin@a.com",
       "password": "123456",
-      "about": "I AM ADMIN"
+      "about": " 222222234234234",
+      "role": "admin",
+      "status": "active"
     },
     {
-      "email": "user@example.com",
+      "email": "misterx@mystery.net",
       "password": "123456",
-      "about": "hello!!!!"
+      "about": "testesttetst",
+      "role": "user",
+      "status": "blocked"
     }
   ],
   "feedbacks": [
     {
-      "id": 2,
-      "author": "admin@a.com",
-      "content": "я очень с ильно недоволен :(((("
+      "id": 3,
+      "author": "misterx@mystery.net",
+      "content": "я очень загадочный человек и пишу очень загадочный отзыв"
     }
   ]
 }
