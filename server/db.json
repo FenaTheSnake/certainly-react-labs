@@ -13,6 +13,12 @@
       "about": "testesttetst",
       "role": "user",
       "status": "blocked"
+    },
+    {
+      "email": "kweriew@wdkofk.cdc",
+      "password": "123456",
+      "about": "Hello!",
+      "role": "user"
     }
   ],
   "feedbacks": [
@@ -20,6 +26,11 @@
       "id": 3,
       "author": "misterx@mystery.net",
       "content": "я очень загадочный человек и пишу очень загадочный отзыв"
+    },
+    {
+      "id": 4,
+      "author": "admin@a.com",
+      "content": "мне нравится сайт этот"
     }
   ]
 }

@@ -1,46 +1,41 @@
 import React, {createContext, useContext, useState, useEffect} from "react";
 import { DirectionProvider, useDirection } from "../contexts/DirectionContext.jsx";
-import { AppBar, Toolbar, Button, Container, Box, CssBaseline, ThemeProvider as MUIThemeProvider, createTheme, Drawer, TextField, Typography, IconButton, Menu, MenuItem } from "@mui/material";
+import { AppBar, Toolbar, Button, CircularProgress, Box, CssBaseline, ThemeProvider as MUIThemeProvider, createTheme, Drawer, TextField, Typography, IconButton, Menu, MenuItem } from "@mui/material";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { useLoginState } from "../contexts/AuthContext.jsx";
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import { login, registerUser, logout } from "../slices/authSlice";
 import { useForm } from "react-hook-form";
+import { useLoginMutation, useRegisterMutation, useLogoutMutation } from '../slices/apiSlice';
 
 
 
 const AuthForm = ({ onClose }) => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const {isAuthenticated, setLoginState} = useLoginState();
+    const [login, { isLoading: isLoginLoading }] = useLoginMutation();
+    const [registerUser, { isLoading: isRegisterLoading }] = useRegisterMutation();
     const dispatch = useDispatch();
 
-    const onSubmit = (data, event) => {
+    const onSubmit = async (data, event) => {
         console.log("Form Data:", data);
 
         const action = event?.nativeEvent?.submitter?.value;
 
         if(action === "login") {
-            dispatch(login(data)).then((status) => {
-                console.log(status);
-                if(status.payload !== undefined) {
-                    setLoginState(true, status.payload);
-                    onClose();
-                    console.log("login state = true");
-                } else {
-                    console.log("login failed");
-                }
+            await login(data).unwrap().then((payload) => {
+              console.log("success ", payload);
+              setLoginState(true, payload);
+            }).catch((error) => {
+              console.log("error ", error);
             });
         } else if (action === "register") {
-            dispatch(registerUser(data)).then((status) => {
-                if(status.payload !== undefined) {
-                    setLoginState(true, status.payload);
-                    onClose();
-                    console.log("new user registered");
-                } else {
-                    console.log("register failed");
-                }
+            await registerUser(data).unwrap().then((payload) => {
+              console.log("success ", payload);
+              setLoginState(true, payload);
+            }).catch((error) => {
+              console.log("error ", error);
             });
         }
     };
@@ -83,6 +78,12 @@ const AuthForm = ({ onClose }) => {
           <Button type="submit" name="action" value="login" variant="contained" fullWidth sx={{ mt: 2 }}>Войти</Button>
           <Button type="submit" name="action" value="register" variant="contained" fullWidth sx={{ mt: 2 }}>Регистрация</Button>
         </form>
+
+        {((isLoginLoading || isRegisterLoading) && 
+          <Box sx={{p: 3}}>
+            <CircularProgress/>
+          </Box>
+        )}
       </Box>
     );
   };
@@ -90,6 +91,7 @@ const AuthForm = ({ onClose }) => {
   export const NavBar = ({toggleThemeFunction}) => {
     const { handleNavigation } = useDirection();
     const {isAuthenticated, setLoginState, user} = useLoginState();
+    const [logout, { isLogoutLoading }] = useLogoutMutation();
     const [isDrawerOpen, setDrawerOpen] = useState(!isAuthenticated);
     const dispatch = useDispatch();
   
@@ -100,13 +102,22 @@ const AuthForm = ({ onClose }) => {
     const handleClose = () => {
       setAnchorEl(null);
     };
-    const handleLogout = () => {
-      dispatch(logout()).then(() => {
+    const handleLogout = async () => {
+      // dispatch(logout()).then(() => {
+      //   setLoginState(false);
+      //   console.log("login state = false");
+      // });
+      // setAnchorEl(null);
+      // setDrawerOpen(true);
+
+      await logout().unwrap().then((payload) => {
         setLoginState(false);
         console.log("login state = false");
+        setAnchorEl(null);
+        setDrawerOpen(true);
+      }).catch((error) => {
+        console.log("error ", error);
       });
-      setAnchorEl(null);
-      setDrawerOpen(true);
     };
   
     return (

@@ -37,40 +37,44 @@ const writeFeedbacks = (feedbacks) => {
 };
 
 app.post("/login", (req, res) => {
-  const { email, password } = req.body;
-  const users = readUsers();
+  setTimeout(() => {
+    const { email, password } = req.body;
+    const users = readUsers();
 
-  const user = users.find(
-    (u) => u.email === email && u.password === password
-  );
+    const user = users.find(
+      (u) => u.email === email && u.password === password
+    );
 
-  if (user) {
-    return res.json({ success: true, user: user });
-  } else {
-    return res
-      .status(401)
-      .json({ success: false });
-  }
+    if (user) {
+      return res.json({ success: true, user: user });
+    } else {
+      return res
+        .status(401)
+        .json({ success: false });
+    }
+  }, 2000);
 });
 
 app.post("/register", (req, res) => {
-  const { email, password } = req.body;
-  const users = readUsers();
+  setTimeout(() => {
+    const { email, password } = req.body;
+    const users = readUsers();
 
-  const userExists = users.find((u) => u.email === email);
-  if (userExists) {
-    return res
-      .status(400)
-      .json({ success: false, message: "User already exists" });
-  }
+    const userExists = users.find((u) => u.email === email);
+    if (userExists) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists" });
+    }
 
-  const newUser = { email, password };
-  newUser.about = "Hello!";
-  newUser.role = "user";
-  users.push(newUser);
-  writeUsers(users);
+    const newUser = { email, password };
+    newUser.about = "Hello!";
+    newUser.role = "user";
+    users.push(newUser);
+    writeUsers(users);
 
-  return res.status(201).json({ success: true, user: newUser });
+    return res.status(201).json({ success: true, user: newUser });
+  }, 2000);
 });
 
 // Получить информацию о пользователе по email
@@ -115,8 +119,10 @@ app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`)
 
 
 app.get("/feedbacks", (req, res) => {
-  const feedbacks = readFeedbacks();
-  res.json(feedbacks);
+  setTimeout(() => {
+    const feedbacks = readFeedbacks();
+    res.json(feedbacks);
+  }, 1500);
 });
 
 // Добавить новый отзыв
@@ -159,13 +165,15 @@ app.delete("/feedbacks/:id", (req, res) => {
 });
 
 app.get("/users", (req, res) => {
-  const users = readUsers();
-  const sanitizedUsers = users.map(({ email, role, status = "active" }) => ({
-    email,
-    role,
-    status,
-  }));
-  res.json({ success: true, users: sanitizedUsers });
+  setTimeout(() => {
+    const users = readUsers();
+    const sanitizedUsers = users.map(({ email, role, status = "active" }) => ({
+      email,
+      role,
+      status,
+    }));
+    res.json(sanitizedUsers);
+  }, 2000);
 });
 
 app.delete("/users/:email", (req, res) => {

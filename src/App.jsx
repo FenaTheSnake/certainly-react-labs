@@ -25,7 +25,9 @@ import { AuthProvider } from "./contexts/AuthContext.jsx";
 
 import authReducer from "./slices/authSlice.js"; // проверь путь
 
-const store = configureStore({ reducer: { auth: authReducer } });
+import store from "./store.js"; 
+
+//const store = configureStore({ reducer: { auth: authReducer } });
 
 const Home = ({ direction }) => {
   return (

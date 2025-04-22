@@ -29,6 +29,8 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import BlockIcon from "@mui/icons-material/Block";
 
+import {CircularProgress} from "@mui/material";
+
 // Импорт из dnd-kit для drag & drop колонок
 import { DndContext, closestCenter, MouseSensor,
     TouchSensor,
@@ -41,6 +43,8 @@ import {
     useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+
+import { useFeedbacksMutation, useUsersMutation } from '../slices/apiSlice';
 
   
 const SortableHeaderCell = ({ header, children }) => {
@@ -71,12 +75,14 @@ const SortableHeaderCell = ({ header, children }) => {
 export const AdminPanel = ({ direction }) => {
     const [users, setUsers] = useState([]);
     const [feedbacks, setFeedbacks] = useState([]);
+    const [getFeedbacks, { isLoading: isFeedbacksLoading }] = useFeedbacksMutation();
+    const [getUsers, { isLoading: isUsersLoading }] = useUsersMutation();
     const [sorting, setSorting] = useState([]); // состояние сортировки
     const [feedbackPage, setFeedbackPage] = useState(false);
 
     // useEffect(() => {
-    //     console.log("sorting", sorting, setSorting);
-    // }, [sorting, setSorting])
+    //     console.log("getFeedbacks ", getFeedbacks);
+    // }, [])
 
     const handleDeleteUser = async (email) => {
         await fetch(`http://localhost:4000/users/${email}`, { method: "DELETE" });
@@ -182,23 +188,15 @@ export const AdminPanel = ({ direction }) => {
 
     // Функция для загрузки пользователей с сервера
     const fetchUsers = async () => {
-        try {
-        const res = await fetch("http://localhost:4000/users");
-        const data = await res.json();
-        setUsers(data.users);
-        } catch (error) {
-        console.error("Ошибка загрузки пользователей:", error);
-        }
+        await getUsers().unwrap().then((data) => {
+            setUsers(data);
+        })
     };
 
     const fetchFeedbacks = async () => {
-        try {
-        const res = await fetch("http://localhost:4000/feedbacks");
-        const data = await res.json();
-        setFeedbacks(data);
-        } catch (error) {
-        console.error("Ошибка загрузки пользователей:", error);
-        }
+        await getFeedbacks().unwrap().then((data) => {
+            setFeedbacks(data);
+        })
     };
 
     useEffect(() => {
@@ -279,103 +277,107 @@ export const AdminPanel = ({ direction }) => {
 
             <h1>Админ панель</h1>
 
-            {!feedbackPage && (
-            <Box>
+            {(isFeedbacksLoading || isUsersLoading) && <CircularProgress/> || (
 
-            <Button onClick={() => {setFeedbackPage(!feedbackPage)}}>Отзывы</Button>
+                !feedbackPage && (
+                <Box>
 
-            <Paper sx={{ padding: 2, marginTop: 3 }}>
-            <h2>Список пользователей</h2>
-            <DndContext collisionDetection={closestCenter} onDragEnd={usersHandleDragEnd} sensors={sensors}>
-                <SortableContext items={usersColumnOrder} strategy={horizontalListSortingStrategy}>
-                <Table>
-                    <TableHead>
-                    {usersTable.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                            <SortableHeaderCell key={header.id} header={header}>
-                            <TableSortLabel
-                                active={!!header.column.getIsSorted()}
-                                direction={header.column.getIsSorted() === "desc" ? "desc" : "asc"}
-                                onClick={header.column.getToggleSortingHandler()}
-                            >
-                                {flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                                )}
-                            </TableSortLabel>
-                            </SortableHeaderCell>
+                <Button onClick={() => {setFeedbackPage(!feedbackPage)}}>Отзывы</Button>
+
+                <Paper sx={{ padding: 2, marginTop: 3 }}>
+                <h2>Список пользователей</h2>
+                <DndContext collisionDetection={closestCenter} onDragEnd={usersHandleDragEnd} sensors={sensors}>
+                    <SortableContext items={usersColumnOrder} strategy={horizontalListSortingStrategy}>
+                    <Table>
+                        <TableHead>
+                        {usersTable.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                                <SortableHeaderCell key={header.id} header={header}>
+                                <TableSortLabel
+                                    active={!!header.column.getIsSorted()}
+                                    direction={header.column.getIsSorted() === "desc" ? "desc" : "asc"}
+                                    onClick={header.column.getToggleSortingHandler()}
+                                >
+                                    {flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                    )}
+                                </TableSortLabel>
+                                </SortableHeaderCell>
+                            ))}
+                            </TableRow>
                         ))}
-                        </TableRow>
-                    ))}
-                    </TableHead>
-                    <TableBody>
-                    {usersTable.getRowModel().rows.map((row) => (
-                        <TableRow key={row.id}>
-                        {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
+                        </TableHead>
+                        <TableBody>
+                        {usersTable.getRowModel().rows.map((row) => (
+                            <TableRow key={row.id}>
+                            {row.getVisibleCells().map((cell) => (
+                                <TableCell key={cell.id}>
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </TableCell>
+                            ))}
+                            </TableRow>
                         ))}
-                        </TableRow>
-                    ))}
-                    </TableBody>
-                </Table>
-                </SortableContext>
-            </DndContext>
-            </Paper>
+                        </TableBody>
+                    </Table>
+                    </SortableContext>
+                </DndContext>
+                </Paper>
 
-            </Box>) 
-            
-            || 
-            
-            (
-            <Box>
+                </Box>) 
+                
+                || 
+                
+                (
+                <Box>
 
-            <Button onClick={() => {setFeedbackPage(!feedbackPage)}}>Пользователи</Button>
+                <Button onClick={() => {setFeedbackPage(!feedbackPage)}}>Пользователи</Button>
 
-            <Paper sx={{ padding: 2, marginTop: 3 }}>
-            <h2>Отзывы</h2>
-            <DndContext collisionDetection={closestCenter} onDragEnd={feedbacksHandleDragEnd} sensors={sensors}>
-                <SortableContext items={feedbacksColumnOrder} strategy={horizontalListSortingStrategy}>
-                <Table>
-                    <TableHead>
-                    {feedbacksTable.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                            <SortableHeaderCell key={header.id} header={header}>
-                            <TableSortLabel
-                                active={!!header.column.getIsSorted()}
-                                direction={header.column.getIsSorted() === "desc" ? "desc" : "asc"}
-                                onClick={header.column.getToggleSortingHandler()}
-                            >
-                                {flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                                )}
-                            </TableSortLabel>
-                            </SortableHeaderCell>
+                <Paper sx={{ padding: 2, marginTop: 3 }}>
+                <h2>Отзывы</h2>
+                <DndContext collisionDetection={closestCenter} onDragEnd={feedbacksHandleDragEnd} sensors={sensors}>
+                    <SortableContext items={feedbacksColumnOrder} strategy={horizontalListSortingStrategy}>
+                    <Table>
+                        <TableHead>
+                        {feedbacksTable.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                                <SortableHeaderCell key={header.id} header={header}>
+                                <TableSortLabel
+                                    active={!!header.column.getIsSorted()}
+                                    direction={header.column.getIsSorted() === "desc" ? "desc" : "asc"}
+                                    onClick={header.column.getToggleSortingHandler()}
+                                >
+                                    {flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                    )}
+                                </TableSortLabel>
+                                </SortableHeaderCell>
+                            ))}
+                            </TableRow>
                         ))}
-                        </TableRow>
-                    ))}
-                    </TableHead>
-                    <TableBody>
-                    {feedbacksTable.getRowModel().rows.map((row) => (
-                        <TableRow key={row.id}>
-                        {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
+                        </TableHead>
+                        <TableBody>
+                        {feedbacksTable.getRowModel().rows.map((row) => (
+                            <TableRow key={row.id}>
+                            {row.getVisibleCells().map((cell) => (
+                                <TableCell key={cell.id}>
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </TableCell>
+                            ))}
+                            </TableRow>
                         ))}
-                        </TableRow>
-                    ))}
-                    </TableBody>
-                </Table>
-                </SortableContext>
-            </DndContext>
-            </Paper>
+                        </TableBody>
+                    </Table>
+                    </SortableContext>
+                </DndContext>
+                </Paper>
 
-            </Box>)}
+                </Box>)
+
+            )}
 
             </ParallaxContainer>
         </Box>
